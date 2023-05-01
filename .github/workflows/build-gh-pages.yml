@@ -26,12 +26,10 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v3
-            - name: Install angular
-              run: npm i -g @angular/cli
             - name: npm install
               run: npm i
             - name: Build
-              run: ng build --base-href=/x4/ --output-path=_site
+              run: node_modules/@angular/cli/bin/ng.js build --base-href=/x4/ --output-path=_site
             - name: Upload artifact
               uses: actions/upload-pages-artifact@v1
 
