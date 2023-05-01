@@ -10,7 +10,13 @@
   </div>
   <!-- 42 instead of 50, you know why -->
   <textarea class="w-100 mt-2" rows="1" maxlength="42" [(ngModel)]="stationName" placeholder="Station Name" (keydown.enter)="exportPlan()"></textarea>
-  <div class="small text-secondary">Place file in the folder: Documents\Egosoft\X4\[12345678]\constructionplan</div>
+  <div class="small text-secondary">
+      <p>Place file in the folder: Documents\Egosoft\X4\[12345678]\constructionplan.</p>
+      <p style="color: orangered;">
+          Note: The export contains all modules without any position or layout information, which means you have to
+          either arrange the modules yourself or use the ingame "Mix Modules" Feature.
+      </p>
+  </div>
 </div>
 <div class="modal-footer">
   <button type="button" class="btn btn-success" (click)="exportPlan()" i18n="@@export">Export</button>
