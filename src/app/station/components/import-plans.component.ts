@@ -24,7 +24,7 @@ interface Plan {
 }
 
 interface PlanList {
-    plan: Plan[];
+    plan: Plan[] | Plan;
 }
 
 interface ConstructionPlan {
@@ -60,6 +60,7 @@ export class ImportPlansComponent extends ComponentBase implements OnInit {
             const result = convert.xml2js(this.xml, { compact: true }) as any;
             layouts = this.importCore(result);
         } catch (e) {
+            console.log(e);
             error = 'Failed to import layouts';
         }
 
@@ -69,7 +70,17 @@ export class ImportPlansComponent extends ComponentBase implements OnInit {
     private importCore(result: ConstructionPlan) {
         const layouts: string[] = [];
 
-        for (const plan of result.plans.plan) {
+        console.log(result)
+
+        let plans: Plan[]
+
+        if (Array.isArray(result.plans.plan)) {
+            plans = result.plans.plan
+        } else {
+            plans = [result.plans.plan]
+        }
+
+        for (const plan of plans) {
             if (plan.entry == null || plan.entry.length === 0) {
                 continue;
             }
