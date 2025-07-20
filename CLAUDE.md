@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is an Angular 15 application for X4: Foundations game utilities and database, specifically a station calculator. It's a fork of crissian/x4 with personal adjustments. The app helps players calculate station production, resource requirements, and profitability.
+This is an Angular 15 application for X4: Foundations game utilities and database, specifically a station calculator. It's a fork of stummi/x4 with personal adjustments. The app helps players calculate station production, resource requirements, and profitability.
 
 ## Development Commands
 
