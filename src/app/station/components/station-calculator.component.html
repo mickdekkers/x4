@@ -43,7 +43,7 @@
                     <div class="col-md-4 col-sm-12">
                         <h6 class="card-title">Station Summary</h6>
 
-                        <app-station-summary #stationSummary [modules]="modules" [sunlight]="sunlight"></app-station-summary>
+                        <app-station-summary #stationSummary [modules]="modules" [sunlight]="sunlight" (storageModulesUpdate)="onStorageModulesUpdate($event)"></app-station-summary>
                     </div>
                 </div>
             </div>

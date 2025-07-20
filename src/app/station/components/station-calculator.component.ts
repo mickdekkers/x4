@@ -15,6 +15,7 @@ import { SaveLayoutComponent } from './save-layout.component';
 import { ShareLayoutComponent } from './share-layout.component';
 import { StationModuleModel } from './station-calculator.model';
 import { StationSummaryComponent } from './station-summary/station-summary.component';
+import { StorageModuleRecommendation } from './station-summary/interfaces/storage-requirement';
 import { BASE_TITLE } from '../../shared/services/constants';
 import { ImportPlansComponent, ImportResult } from './import-plans.component';
 import { ExportPlanComponent } from './export-plan.component';
@@ -227,5 +228,27 @@ export class StationCalculatorComponent extends ComponentBase implements OnInit 
         if (layout) {
             this.loadLayoutInternal(layout);
         }
+    }
+
+    onStorageModulesUpdate(recommendations: StorageModuleRecommendation[]) {
+        // Add recommended storage modules to the station design
+        recommendations.forEach(recommendation => {
+            recommendation.recommendedModules.forEach(recommendedModule => {
+                // Check if this module type already exists in the station
+                const existingModule = this.modules.find(m => m.moduleId === recommendedModule.moduleId);
+                
+                if (existingModule) {
+                    // Add to existing module count
+                    existingModule.count += recommendedModule.count;
+                } else {
+                    // Create new module entry
+                    const newModule = new StationModuleModel(this.wareService, this.moduleService, recommendedModule.moduleId, recommendedModule.count);
+                    this.modules.push(newModule);
+                }
+            });
+        });
+
+        // Trigger update of all components
+        this.onChange();
     }
 }

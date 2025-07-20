@@ -13,6 +13,7 @@ import { StationResourcesComponent } from './components/station-resources/statio
 import { StationSummaryComponent } from './components/station-summary/station-summary.component';
 import { LayoutService } from './services/layout-service';
 import { StationRoutingModule } from './station-routing.module';
+import { StorageCalculationService } from './components/station-summary/services/storage-calculation.service';
 import { ImportPlansComponent } from './components/import-plans.component';
 import { ImportPlanResultComponent } from './components/import-plan-result.component';
 import { ExportPlanComponent } from './components/export-plan.component';
@@ -41,7 +42,8 @@ import { AutocompleteComponent } from "./components/autocomplete/autocomplete.co
       ExportPlanComponent
    ],
    providers: [
-      LayoutService
+      LayoutService,
+      StorageCalculationService
    ]
 })
 export class StationModule {

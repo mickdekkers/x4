@@ -316,3 +316,208 @@
    </tr>
    </tbody>
 </table>
+
+<table class="table table-sm small">
+   <thead>
+   <tr>
+      <th scope="col" i18n="@@storageNeeds">Storage Needs</th>
+   </tr>
+   </thead>
+   <tbody>
+   <tr>
+      <td colspan="2">
+         <div class="row">
+            <div class="form-group col">
+               <label for="input-storage-hours">
+                  <span>Input Storage Capacity:</span>
+               </label>
+               <div class="d-flex align-items-center" style="gap: 0.5rem;">
+                  <input
+                     type="range"
+                     class="form-control-range small flex-grow-1"
+                     id="input-storage-hours"
+                     min="1"
+                     max="168"
+                     step="1"
+                     [(ngModel)]="storageConfig.inputHours"
+                     (ngModelChange)="onStorageInputHoursChange()"
+                  />
+                  <input
+                     type="number"
+                     class="form-control form-control-sm"
+                     style="width: 60px;"
+                     min="1"
+                     [(ngModel)]="storageConfig.inputHours"
+                     (ngModelChange)="onStorageInputHoursChange()"
+                  />
+                  <span>h</span>
+               </div>
+            </div>
+
+
+            <div class="form-group col">
+               <label for="output-storage-hours">
+                  <span>Output Storage Capacity:</span>
+               </label>
+               <div class="d-flex align-items-center" style="gap: 0.5rem;">
+                  <input
+                     type="range"
+                     class="form-control-range small flex-grow-1"
+                     id="output-storage-hours"
+                     min="1"
+                     max="168"
+                     step="1"
+                     [(ngModel)]="storageConfig.outputHours"
+                     (ngModelChange)="onStorageOutputHoursChange()"
+                  />
+                  <input
+                     type="number"
+                     class="form-control form-control-sm"
+                     style="width: 60px;"
+                     min="1"
+                     [(ngModel)]="storageConfig.outputHours"
+                     (ngModelChange)="onStorageOutputHoursChange()"
+                  />
+                  <span>h</span>
+               </div>
+            </div>
+         </div>
+      </td>
+   </tr>
+
+   <tr>
+      <td colspan="2">
+         <div class="row align-items-center mb-2">
+            <div class="col-auto">
+               <label for="storage-faction" class="col-form-label col-form-label-sm">Faction:</label>
+            </div>
+            <div class="col-auto">
+               <select
+                  id="storage-faction"
+                  class="form-control form-control-sm"
+                  [(ngModel)]="selectedStorageFaction"
+                  (ngModelChange)="onStorageFactionChange()">
+                  <option *ngFor="let faction of getAvailableStorageFactions()" [value]="faction.id">
+                     {{ faction.name }}
+                  </option>
+               </select>
+            </div>
+            <div class="col-auto ml-3">
+               <div class="d-flex flex-nowrap align-items-center" style="gap: 1.5rem;">
+                  <span>Sizes:</span>
+                  <div class="form-check form-check-inline">
+                     <input
+                        type="checkbox"
+                        id="small-storage"
+                        class="form-check-input"
+                        [(ngModel)]="includeSmallStorage"
+                        (ngModelChange)="onStorageSizeChange()">
+                     <label class="form-check-label" for="small-storage">
+                        Small
+                     </label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                     <input
+                        type="checkbox"
+                        id="medium-storage"
+                        class="form-check-input"
+                        [(ngModel)]="includeMediumStorage"
+                        (ngModelChange)="onStorageSizeChange()">
+                     <label class="form-check-label" for="medium-storage">
+                        Medium
+                     </label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                     <input
+                        type="checkbox"
+                        id="large-storage"
+                        class="form-check-input"
+                        [(ngModel)]="includeLargeStorage"
+                        (ngModelChange)="onStorageSizeChange()">
+                     <label class="form-check-label" for="large-storage">
+                        Large
+                     </label>
+                  </div>
+               </div>
+            </div>
+         </div>
+         <div class="row">
+            <div class="col">
+               <button type="button" class="btn btn-primary btn-sm" [disabled]="!hasStorageRecommendations()" (click)="updateStationWithStorageModules()">
+                  <i class="fa fa-plus"></i> Add Recommended Storage Modules
+               </button>
+            </div>
+         </div>
+      </td>
+   </tr>
+
+   <ng-container *ngFor="let cargoGroup of storageCargoGroups">
+      <!-- Cargo Group Header -->
+      <tr class="table-active">
+         <td colspan="5"><strong>{{ cargoGroup.cargoType | titlecase }} Storage</strong></td>
+      </tr>
+
+      <!-- Column Headers -->
+      <tr class="table-secondary">
+         <td><strong>Ware</strong></td>
+         <td><strong>Type</strong></td>
+         <td class="text-right"><strong>#/h</strong></td>
+         <td class="text-right"><strong>m³/h</strong></td>
+         <td class="text-right"><strong>Total&nbsp;m³</strong></td>
+      </tr>
+
+      <!-- Ware Rows -->
+      <tr *ngFor="let wareRow of cargoGroup.wareRows">
+         <td>{{ wareRow.ware.name }}</td>
+         <td>
+            <span class="badge badge-sm">
+               {{ wareRow.wareType | titlecase }}
+            </span>
+         </td>
+         <td class="text-right">{{ wareRow.hourlyAmount | number: '1.0-0' }}</td>
+         <td class="text-right">{{ wareRow.volumePerHour | number: '1.0-0' }}</td>
+         <td class="text-right">{{ wareRow.totalVolume | number: '1.0-0' }}</td>
+      </tr>
+
+      <!-- Subtotal Row -->
+      <tr class="table-light">
+         <td><strong>Total {{ cargoGroup.cargoType | titlecase }} Capacity</strong></td>
+         <td></td>
+         <td></td>
+         <td></td>
+         <td class="text-right"><strong>{{ cargoGroup.totalVolume | number: '1.0-0' }}</strong></td>
+      </tr>
+
+      <!-- Storage Status Row -->
+      <tr [ngClass]="getCargoGroupStatusClass(cargoGroup)">
+         <td>Available Storage</td>
+         <td></td>
+         <td></td>
+         <td></td>
+         <td class="text-right">{{ cargoGroup.availableVolume | number: '1.0-0' }}</td>
+      </tr>
+
+      <!-- Shortfall Row (if needed) -->
+      <tr *ngIf="cargoGroup.shortfall > 0" class="text-danger">
+         <td><strong>Additional Storage Needed</strong></td>
+         <td></td>
+         <td></td>
+         <td></td>
+         <td class="text-right"><strong>{{ cargoGroup.shortfall | number: '1.0-0' }}</strong></td>
+      </tr>
+
+      <!-- Recommended Modules (if any) -->
+      <tr *ngFor="let module of cargoGroup.recommendedModules" class="text-muted">
+         <td class="pl-3">+ {{ module.count }} x {{ module.moduleName }}</td>
+         <td></td>
+         <td></td>
+         <td></td>
+         <td class="text-right">{{ module.totalCapacity | number: '1.0-0' }}</td>
+      </tr>
+
+      <!-- Spacer Row -->
+      <tr><td colspan="5">&nbsp;</td></tr>
+   </ng-container>
+
+   </tbody>
+</table>

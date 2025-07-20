@@ -8,6 +8,10 @@ import { ModuleCost } from './models/module-cost';
 import { ModuleCostItem } from './models/module-cost-item';
 import { ResourceSummary } from './models/resource-summary';
 import { StationSummaryService } from './services/station-summary.service';
+import { StorageCalculationService } from './services/storage-calculation.service';
+import { StorageConfiguration } from './models/storage-configuration';
+import { StorageNeeds, StorageModuleRecommendation, StorageCargoGroup } from './interfaces/storage-requirement';
+import { ModuleService } from '../../../shared/services/module.service';
 
 /**
  * The Station Summary component
@@ -42,8 +46,21 @@ export class StationSummaryComponent implements OnChanges {
 
    totalModuleResourceCosts: ResourceAmount[] = [];
 
+   // Storage-related properties
+   storageConfig = new StorageConfiguration();
+   storageNeeds: StorageNeeds[] = [];
+   storageRecommendations: StorageModuleRecommendation[] = [];
+   storageCargoGroups: StorageCargoGroup[] = [];
+   selectedStorageFaction: string = 'argon';
+   includeSmallStorage: boolean = false;
+   includeMediumStorage: boolean = false;
+   includeLargeStorage: boolean = true;
+
    @Output()
    change = new EventEmitter();
+
+   @Output()
+   storageModulesUpdate = new EventEmitter<StorageModuleRecommendation[]>();
 
     @Input()
     modules: StationModuleModel[];
@@ -51,7 +68,12 @@ export class StationSummaryComponent implements OnChanges {
     @Input()
     sunlight = 100;
 
-   constructor(private wareService: WareService, private stationSummaryService: StationSummaryService) {
+   constructor(
+      private wareService: WareService,
+      private stationSummaryService: StationSummaryService,
+      private storageCalculationService: StorageCalculationService,
+      private moduleService: ModuleService
+   ) {
    }
 
    ngOnChanges() {
@@ -168,6 +190,41 @@ export class StationSummaryComponent implements OnChanges {
             }
          });
       });
+
+      // Calculate storage needs
+      this.updateStorageNeeds();
+   }
+
+   updateStorageNeeds() {
+      if (this.modules == null) {
+         this.storageNeeds = [];
+         this.storageRecommendations = [];
+         this.storageCargoGroups = [];
+         return;
+      }
+
+      const resources = ResourceCalculator.calculate(this.modules, this.sunlight, this.partialWorkforce);
+      this.storageNeeds = this.storageCalculationService.calculateStorageNeeds(resources, this.storageConfig);
+
+      const sizeFilter = {
+         small: this.includeSmallStorage,
+         medium: this.includeMediumStorage,
+         large: this.includeLargeStorage
+      };
+
+      this.storageRecommendations = this.storageCalculationService.calculateStorageRecommendations(
+         this.storageNeeds,
+         this.modules,
+         this.selectedStorageFaction,
+         sizeFilter
+      );
+      this.storageCargoGroups = this.storageCalculationService.calculateStorageCargoGroups(
+         resources,
+         this.storageConfig,
+         this.modules,
+         this.selectedStorageFaction,
+         sizeFilter
+      );
    }
 
    get workforceStep() {
@@ -239,5 +296,59 @@ export class StationSummaryComponent implements OnChanges {
 
    toggleExpanded(key: string) {
       this.expandState[key] = !this.expandState[key];
+   }
+
+   // Storage configuration methods
+   onStorageInputHoursChange() {
+      this.storageConfig.inputHours = Math.max(0, this.storageConfig.inputHours || 0);
+      this.storageConfig.updateInputHours(this.storageConfig.inputHours);
+      this.updateStorageNeeds();
+   }
+
+   onStorageOutputHoursChange() {
+      this.storageConfig.outputHours = Math.max(0, this.storageConfig.outputHours || 0);
+      this.storageConfig.updateOutputHours(this.storageConfig.outputHours);
+      this.updateStorageNeeds();
+   }
+
+   updateStationWithStorageModules() {
+      this.storageCalculationService.addRecommendedModulesToStation(
+         this.storageCargoGroups,
+         this.modules,
+         this.wareService,
+         this.moduleService
+      );
+
+      // Trigger update of all components and refresh storage calculations
+      this.change.emit();
+      this.updateStorageNeeds();
+   }
+
+   getCargoGroupStatusClass(cargoGroup: StorageCargoGroup): string {
+      if (cargoGroup.shortfall > cargoGroup.totalVolume * 0.8) {
+         return 'text-danger';
+      } else if (cargoGroup.shortfall) {
+         return 'text-warning';
+      } else {
+         return 'text-success';
+      }
+   }
+
+   hasStorageRecommendations(): boolean {
+      return this.storageCargoGroups.some(group => group.shortfall > 0);
+   }
+
+   getAvailableStorageFactions(): {id: string, name: string}[] {
+      return this.storageCalculationService.getAvailableStorageFactions();
+   }
+
+   onStorageFactionChange() {
+      // Recalculate storage recommendations to show faction-specific modules
+      this.updateStorageNeeds();
+   }
+
+   onStorageSizeChange() {
+      // Recalculate storage recommendations to show size-filtered modules
+      this.updateStorageNeeds();
    }
 }
